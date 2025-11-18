@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # SQL Server Database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ptj-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Password123
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - ptj-network
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Password123 -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # ASP.NET Core API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ptj-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Default=Server=sqlserver;Database=PartTimeJobs;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=True;MultipleActiveResultSets=true
+      - JWT__Key=YourSuperSecretKeyForJWTTokenGenerationMinimum32CharactersLong
+      - JWT__Issuer=PTJ.API
+      - JWT__Audience=PTJ.Client
+      - JWT__AccessTokenExpirationMinutes=60
+      - JWT__RefreshTokenExpirationDays=7
+      - FileStorage__UploadPath=/app/Uploads
+      - FileStorage__MaxFileSize=10485760
+      - FileStorage__AllowedExtensions__0=.jpg
+      - FileStorage__AllowedExtensions__1=.jpeg
+      - FileStorage__AllowedExtensions__2=.png
+      - FileStorage__AllowedExtensions__3=.pdf
+      - FileStorage__AllowedExtensions__4=.doc
+      - FileStorage__AllowedExtensions__5=.docx
+    ports:
+      - "5000:8080"
+    volumes:
+      - uploads-data:/app/Uploads
+    networks:
+      - ptj-network
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  sqlserver-data:
+    driver: local
+  uploads-data:
+    driver: local
+
+networks:
+  ptj-network:
+    driver: bridge
