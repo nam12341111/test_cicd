@@ -84,7 +84,7 @@ builder.Services.Configure<JwtOptions>(jwtSection);
 var jwtOptions = jwtSection.Get<JwtOptions>();
 if (jwtOptions == null || string.IsNullOrEmpty(jwtOptions.Key))
 {
-    throw new InvalidOperationException("JWT configuration is missing or invalid");
+    throw new InvalidOperationException("JWT configuration is missing or inval");
 }
 
 builder.Services.AddAuthentication(options =>
