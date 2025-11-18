@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet run)",
+      "Bash(sqlcmd:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet remove:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
